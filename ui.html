@@ -45,30 +45,30 @@
       placeholder="Введите текст здесь..."
       rows="6"
     ></textarea>
-    <div class="content-stretch flex gap-[32px] relative shrink-0 w-full">
-      <div id="config">
-        <label class="flex items-center space-x-2 mb-4">
+    <div class="content-stretch flex gap-[32px] justify-between w-full mb-4">
+      <div id="config" class="flex items-start flex-col gap-[8px]">
+        <label class="flex items-center space-x-2">
           <input type="checkbox" id="capitalize" checked class="form-checkbox h-4 w-4 text-blue-600" />
           <span class="text-sm">Начинать каждую строку с заглавной буквы</span>
         </label>
 
-        <label class="flex items-center space-x-2 mb-4">
+        <label class="flex items-center space-x-2">
           <input type="checkbox" id="removePunctuation" checked class="form-checkbox h-4 w-4 text-blue-600" />
           <span class="text-sm">Удалить знаки препинания в конце строк</span>
         </label>
 
-        <label class="flex items-center space-x-2 mb-4">
+        <label class="flex items-center space-x-2">
           <input type="checkbox" id="enableTypograph" class="form-checkbox h-4 w-4 text-blue-600" />
           <span class="text-sm">Оттипографить текст</span>
         </label>
-        <label class="flex items-center space-x-2 mb-4">
+        <label class="flex items-center space-x-2">
           <input type="checkbox" id="fillAllWithFirstLine" class="form-checkbox h-4 w-4 text-blue-600" />
           <span class="text-sm">Заполнить все поля первой строкой</span>
         </label>
       </div>
-      <div id="status" class="mb-2 text-gray-700 text-sm text-right">
-        Выделено текстовых слоёв: <span id="selectedCount">0</span><br />
-        Кол-во строк в поле: <span id="linesCount">0</span>
+      <div id="status" class="flex items-end flex-col gap-[8px] text-gray-700 text-sm text-right ">
+        <p>Выделено текстовых слоёв: <span id="selectedCount">0</span></p>
+        <p>Кол-во строк в поле: <span id="linesCount">0</span></p>
       </div>
     </div>
 
