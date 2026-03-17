@@ -34,22 +34,43 @@ figma.ui.onmessage = async (msg) => {
     const text = msg.text || '';
     const capitalize = !!msg.capitalize;
     const removePunctuation = !!msg.removePunctuation;
+    const fillAllWithFirstLine = !!msg.fillAllWithFirstLine;
 
-    // Типограф уже применён в UI, здесь не выполняется!
-    const lines = text
-      .split('\n')
-      .map(line => {
-        let trimmed = line.trim();
-        if (removePunctuation) trimmed = trimEndPunctuation(trimmed);
-        return capitalize ? capitalizeFirstLetter(trimmed) : trimmed;
-      })
-      .filter(line => line.length > 0);
+    let lines;
+
+    if (fillAllWithFirstLine) {
+      const firstLine = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)[0] || '';
+
+      let trimmed = firstLine;
+      if (removePunctuation) trimmed = trimEndPunctuation(trimmed);
+      const processedLine = capitalize ? capitalizeFirstLetter(trimmed) : trimmed;
+
+      lines = new Array(msg.selectedCount).fill(processedLine);
+    } else {
+      lines = text
+        .split('\n')
+        .map(line => {
+          let trimmed = line.trim();
+          if (removePunctuation) trimmed = trimEndPunctuation(trimmed);
+          return capitalize ? capitalizeFirstLetter(trimmed) : trimmed;
+        })
+        .filter(line => line.length > 0);
+    }
 
     const selected = figma.currentPage.selection;
     const selectedTextNodes = selected.filter(node => node.type === "TEXT");
 
-    if (selectedTextNodes.length !== lines.length) {
+    if (!fillAllWithFirstLine && selectedTextNodes.length !== lines.length) {
       figma.notify('Количество выбранных текстовых слоёв должно совпадать с количеством строк!');
+      figma.ui.postMessage({ error: true });
+      return;
+    }
+
+    if (selectedTextNodes.length === 0) {
+      figma.notify('Выделите хотя бы один текстовый слой!');
       figma.ui.postMessage({ error: true });
       return;
     }
@@ -62,6 +83,6 @@ figma.ui.onmessage = async (msg) => {
 
     figma.notify('Текст успешно вставлен по слоям!');
     figma.ui.postMessage({ success: true });
-    //figma.closePlugin();
+    // figma.closePlugin();
   }
 };

@@ -14,14 +14,11 @@
       background-color: #EF3124;
       border-radius: 8px;
       padding: 4px 20px;
-        font-family: "SF Pro Text";
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 500;
-        line-height: 24px; /* 150% */
-      /* padding: 12px 32px;
-      font-size: 1.125rem;
-      min-width: 160px; */
+      font-family: "SF Pro Text";
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 24px; /* 150% */
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
@@ -42,30 +39,38 @@
   </div>
 
   <div id="app" style="display:none">
-    <div id="status" class="mb-2 text-gray-700 text-sm font-normal">
-      Выделено текстовых слоёв: <span id="selectedCount">0</span><br />
-      Кол-во строк в поле: <span id="linesCount">0</span>
-    </div>
     <textarea
       id="input"
       class="linedtextarea w-full h-48 border border-gray-300 rounded-md p-2 break-words whitespace-pre-wrap text-left mb-4"
       placeholder="Введите текст здесь..."
       rows="6"
     ></textarea>
+    <div class="content-stretch flex gap-[32px] relative shrink-0 w-full">
+      <div id="config">
         <label class="flex items-center space-x-2 mb-4">
-        <input type="checkbox" id="capitalize" checked class="form-checkbox h-4 w-4 text-blue-600" />
-        <span class="text-sm">Начинать каждую строку с заглавной буквы</span>
+          <input type="checkbox" id="capitalize" checked class="form-checkbox h-4 w-4 text-blue-600" />
+          <span class="text-sm">Начинать каждую строку с заглавной буквы</span>
         </label>
 
         <label class="flex items-center space-x-2 mb-4">
-        <input type="checkbox" id="removePunctuation" checked class="form-checkbox h-4 w-4 text-blue-600" />
-        <span class="text-sm">Удалить знаки препинания в конце строк</span>
+          <input type="checkbox" id="removePunctuation" checked class="form-checkbox h-4 w-4 text-blue-600" />
+          <span class="text-sm">Удалить знаки препинания в конце строк</span>
         </label>
 
         <label class="flex items-center space-x-2 mb-4">
-        <input type="checkbox" id="enableTypograph" class="form-checkbox h-4 w-4 text-blue-600" />
-        <span class="text-sm">Оттипографить текст</span>
+          <input type="checkbox" id="enableTypograph" class="form-checkbox h-4 w-4 text-blue-600" />
+          <span class="text-sm">Оттипографить текст</span>
         </label>
+        <label class="flex items-center space-x-2 mb-4">
+          <input type="checkbox" id="fillAllWithFirstLine" class="form-checkbox h-4 w-4 text-blue-600" />
+          <span class="text-sm">Заполнить все поля первой строкой</span>
+        </label>
+      </div>
+      <div id="status" class="mb-2 text-gray-700 text-sm text-right">
+        Выделено текстовых слоёв: <span id="selectedCount">0</span><br />
+        Кол-во строк в поле: <span id="linesCount">0</span>
+      </div>
+    </div>
 
     <button
       id="applyBtn"
@@ -115,7 +120,9 @@
           text: text,
           capitalize: document.getElementById('capitalize').checked,
           removePunctuation: document.getElementById('removePunctuation').checked,
-          enableTypograph: typographCheckbox.checked
+          enableTypograph: typographCheckbox.checked,
+          fillAllWithFirstLine: document.getElementById('fillAllWithFirstLine').checked, // Новая опция!
+          selectedCount: parseInt(selectedCount.textContent) // передаём количество слоёв
         }
       }, '*');
     });
