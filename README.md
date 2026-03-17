@@ -5,7 +5,7 @@
 
 **Text2Layers** — advanced Figma plugin for **bulk text layer manipulation**. Automates repetitive text editing across multiple layers, saving hours of manual work.
 
-![image](https://rawcdn.githack.com/mfd/text2layers/d796cce3fd4e17258195628998e335dddcc3eb81/t2l.gif)
+![Image](t2l.gif)
 
 
 ## ✨ **Features**
