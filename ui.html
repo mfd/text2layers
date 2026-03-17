@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Text2Layers</title>
+  <!-- Tailwind CSS и Typograf через CDN -->
+  <!-- <link rel="stylesheet" href="tailwind.min.css">
+  <script src="typograf.min.js"></script> -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/typograf@7.4.4/dist/typograf.min.js"></script>
+  <style>
+    .linedtextarea { resize: none; }
+    .abutton {
+      background-color: #EF3124;
+      border-radius: 8px;
+      padding: 4px 20px;
+        font-family: "SF Pro Text";
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 24px; /* 150% */
+      /* padding: 12px 32px;
+      font-size: 1.125rem;
+      min-width: 160px; */
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .abutton:hover { background-color: #d92a1f; }
+    label {user-select: none;cursor: pointer;}
+  </style>
+</head>
+<body class="p-4 bg-gray-50 font-sans">
+  <!-- Лоадер на время загрузки CDN -->
+  <div id="loader" class="fixed inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50">
+    <div class="flex flex-col items-center gap-2">
+      <svg class="animate-spin h-7 w-7 text-[#EF3124]" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#EF3124" stroke-width="4" fill="none"/>
+        <path class="opacity-75" fill="#EF3124" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+      <span class="text-[#EF3124] font-semibold">Загрузка...</span>
+    </div>
+  </div>
+
+  <div id="app" style="display:none">
+    <div id="status" class="mb-2 text-gray-700 text-sm font-normal">
+      Выделено текстовых слоёв: <span id="selectedCount">0</span><br />
+      Кол-во строк в поле: <span id="linesCount">0</span>
+    </div>
+    <textarea
+      id="input"
+      class="linedtextarea w-full h-48 border border-gray-300 rounded-md p-2 break-words whitespace-pre-wrap text-left mb-4"
+      placeholder="Введите текст здесь..."
+      rows="6"
+    ></textarea>
+        <label class="flex items-center space-x-2 mb-4">
+        <input type="checkbox" id="capitalize" checked class="form-checkbox h-4 w-4 text-blue-600" />
+        <span class="text-sm">Начинать каждую строку с заглавной буквы</span>
+        </label>
+
+        <label class="flex items-center space-x-2 mb-4">
+        <input type="checkbox" id="removePunctuation" checked class="form-checkbox h-4 w-4 text-blue-600" />
+        <span class="text-sm">Удалить знаки препинания в конце строк</span>
+        </label>
+
+        <label class="flex items-center space-x-2 mb-4">
+        <input type="checkbox" id="enableTypograph" class="form-checkbox h-4 w-4 text-blue-600" />
+        <span class="text-sm">Оттипографить текст</span>
+        </label>
+
+    <button
+      id="applyBtn"
+      class="abutton text-white font-bold"
+    >
+      Вставить текст
+    </button>
+  </div>
+  <script>
+    const textarea = document.getElementById('input');
+    const linesCount = document.getElementById('linesCount');
+    const selectedCount = document.getElementById('selectedCount');
+    const typographCheckbox = document.getElementById('enableTypograph');
+
+    function updateLines() {
+      const count = textarea.value
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .length;
+      linesCount.textContent = count;
+    }
+    textarea?.addEventListener('input', updateLines);
+    window.addEventListener('DOMContentLoaded', updateLines);
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (msg && msg.type === 'update-selected-count') {
+        selectedCount.textContent = msg.count;
+      }
+    };
+    window.parent.postMessage({ pluginMessage: { type: 'request-selected-count' } }, '*');
+
+    document.getElementById('applyBtn')?.addEventListener('click', function() {
+      let text = textarea.value;
+      // Если включён типограф — обработать каждую строку через Typograf
+      if (typographCheckbox.checked && window.Typograf) {
+        const tp = new window.Typograf({locale: ['ru', 'en-US']});
+        text = text
+          .split('\n')
+          .map(line => tp.execute(line))
+          .join('\n');
+      }
+      parent.postMessage({
+        pluginMessage: {
+          type: 'split-and-insert',
+          text: text,
+          capitalize: document.getElementById('capitalize').checked,
+          removePunctuation: document.getElementById('removePunctuation').checked,
+          enableTypograph: typographCheckbox.checked
+        }
+      }, '*');
+    });
+
+    // Лоадер: ждем загрузки CDN-скриптов
+    let cdnsLoaded = 0;
+    function tryShowApp() {
+      cdnsLoaded++;
+      if (cdnsLoaded === 2) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('app').style.display = '';
+      }
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      const tw = document.querySelector('script[src*="tailwind"]');
+      if (tw) tw.onload = tryShowApp; else cdnsLoaded++;
+      const tp = document.querySelector('script[src*="typograf"]');
+      if (tp) tp.onload = tryShowApp; else cdnsLoaded++;
+      setTimeout(() => {
+        if (document.getElementById('loader').style.display !== 'none') {
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('app').style.display = '';
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
