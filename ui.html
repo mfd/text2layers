@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Text2Layers</title>
+  <script>
+    window.tailwind = { config: { corePlugins: { preflight: false } } }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/typograf@7.4.4/dist/typograf.min.js"></script>
   <style>
-    /* Красный бренд — переопределяем по теме через html.figma-light / html.figma-dark */
     :root {
       --brand: #EF3124;
       --brand-hover: #d72b20;
@@ -16,12 +18,18 @@
       --brand-hover: #e63122;
     }
 
-    .lined-textarea { resize: none; }
-
     #input {
+      resize: none;
+      width: 100%;
       background-color: var(--figma-color-bg-field, #fff);
       border: 1px solid var(--figma-color-border, #e6e6e6);
       color: var(--figma-color-text, #000);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 14px;
+      height: 192px;
+      box-sizing: border-box;
+      display: block;
     }
     #input::placeholder {
       color: var(--figma-color-text-disabled, #999);
@@ -30,6 +38,9 @@
       outline: none;
       border-color: var(--figma-color-border-selected, #0d99ff);
       box-shadow: 0 0 0 2px var(--figma-color-border-selected-transparent, rgba(13,153,255,0.2));
+    }
+    html.figma-dark #input {
+      background-color: #242424;
     }
 
     .a-button {
@@ -44,7 +55,6 @@
       color: #ffffff;
       border: none;
     }
-    
     .a-button:hover { background-color: var(--brand-hover); }
 
     label { user-select: none; cursor: pointer; }
@@ -54,14 +64,7 @@
       width: 16px;
       height: 16px;
       cursor: pointer;
-    }
-
-    #loader {
-      background-color: var(--figma-color-bg, #fff);
-    }
-    #loader svg,
-    #loader span {
-      color: var(--brand);
+      flex-shrink: 0;
     }
 
     body {
@@ -70,15 +73,22 @@
       padding: 1rem;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
+      margin: 0;
     }
+
+    #loader.hidden { display: none !important; }
+    #loader svg, #loader span { color: var(--brand); }
+
+    #app { display: none; }
+    #app.visible { display: block !important; }
   </style>
 </head>
-<body class="p-4 font-sans">
+<body>
 
   <!-- Loader -->
-  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50">
+  <div id="loader" class="flex items-center justify-center h-24">
     <div class="flex flex-col items-center gap-2">
-      <svg class="animate-spin h-7 w-7" viewBox="0 0 24 24">
+      <svg class="animate-spin w-7 h-7" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
       </svg>
@@ -87,44 +97,44 @@
   </div>
 
   <!-- App -->
-  <div id="app" style="display: none;">
+  <div id="app">
     <textarea
       id="input"
-      class="lined-textarea w-full h-48 p-2 rounded-md mb-4 break-words whitespace-pre-wrap text-left"
+      class="mb-4"
       placeholder="Вставьте текст..."
     ></textarea>
 
-    <div class="content-stretch flex gap-3 justify-between w-full mb-6">
-      <div class="flex items-start flex-col gap-[8px]">
-        <label class="flex items-center space-x-2">
+    <div class="flex gap-3 justify-between w-full mb-6">
+      <div class="flex flex-col gap-2">
+        <label class="flex items-center gap-2">
           <input type="checkbox" id="capitalize" checked>
           <span class="text-sm">Начинать каждую строку с заглавной буквы</span>
         </label>
-        <label class="flex items-center space-x-2">
+        <label class="flex items-center gap-2">
           <input type="checkbox" id="removeBullets" checked>
           <span class="text-sm">Удалять маркеры списка (•, -)</span>
         </label>
-        <label class="flex items-center space-x-2">
+        <label class="flex items-center gap-2">
           <input type="checkbox" id="removePunctuation" checked>
           <span class="text-sm">Удалить знаки препинания в конце строк</span>
         </label>
-        <label class="flex items-center space-x-2">
+        <label class="flex items-center gap-2">
           <input type="checkbox" id="enableTypograph" checked>
           <span class="text-sm">Оттипографить текст</span>
         </label>
-        <label class="flex items-center space-x-2">
+        <label class="flex items-center gap-2">
           <input type="checkbox" id="fillAllWithFirstLine">
           <span class="text-sm">Заполнить все поля первой строкой</span>
         </label>
       </div>
 
-      <div class="flex items-end flex-col gap-[8px] text-sm text-right" style="color: var(--figma-color-text-secondary)">
+      <div class="flex flex-col items-end gap-2 text-sm text-right" style="color: var(--figma-color-text-secondary);">
         <p>Выделено текстовых слоёв: <span id="selectedCount">0</span></p>
         <p>Кол-во строк в поле: <span id="linesCount">0</span></p>
       </div>
     </div>
 
-    <button id="applyBtn" class="a-button font-bold">Вставить текст</button>
+    <button id="applyBtn" class="a-button">Вставить текст</button>
   </div>
 
   <script>
@@ -141,8 +151,8 @@
     const linesCountEl = document.getElementById('linesCount');
 
     function showApp() {
-      loader.style.display = 'none';
-      app.style.display = 'block';
+      loader.classList.add('hidden');
+      app.classList.add('visible');
     }
 
     function updateLinesCount() {
